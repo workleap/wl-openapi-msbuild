@@ -8,7 +8,7 @@ namespace Workleap.OpenApi.MSBuild.Spectral;
 internal sealed class SpectralRunner
 {
     // If the line below changes, make sure to update the corresponding regex on the renovate.json file
-    private const string SpectralVersion = "6.14.2";
+    private const string SpectralVersion = "6.14.3";
 
     // Matches logs with the format of: 0 problems (0 errors, 0 warnings, 0 infos, 0 hints)
     private static readonly Regex SpectralLogWarningPattern = new(@"[0-9]+ problems? \((?<errors>[0-9]+) errors?, (?<warnings>[0-9]+) warnings?, [0-9]+ infos?, [0-9]+ hints?\)");

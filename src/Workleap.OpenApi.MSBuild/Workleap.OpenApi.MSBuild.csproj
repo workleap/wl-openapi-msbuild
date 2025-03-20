@@ -10,8 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.7.1" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.10.4" />
+    <PackageReference Include="CliWrap" Version="3.8.2" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.13.9" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 

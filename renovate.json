@@ -68,6 +68,19 @@
       ],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "Tufin/oasdiff"
+    },
+    {
+      "description": "Custom manager for renovating Swagger CLI version listed in .cs files",
+      "customType": "regex",
+      "fileMatch": [
+        "\\.cs$"
+      ],
+      "matchStringsStrategy": "any",
+      "matchStrings": [
+        "private const string SwaggerVersion = \"(?<currentValue>[^\"]+)\";"
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "domaindrivendev/Swashbuckle.AspNetCore"
     }
   ]
 }

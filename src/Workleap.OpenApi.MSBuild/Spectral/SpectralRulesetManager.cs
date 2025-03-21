@@ -1,12 +1,12 @@
-﻿using Microsoft.Build.Framework;
+using Microsoft.Build.Framework;
 using YamlDotNet.RepresentationModel;
 
 namespace Workleap.OpenApi.MSBuild.Spectral;
 
 internal sealed class SpectralRulesetManager
 {
-    private const string WorkleapRulesetVersion = "0.9.0";
-    private const string WorkleapRulesetDownloadUrlFormat = "https://raw.githubusercontent.com/gsoft-inc/wl-api-guidelines/{0}/.spectral.{1}.yaml";
+    private const string WorkleapRulesetVersion = "0.10.1";
+    private const string WorkleapRulesetDownloadUrlFormat = "https://raw.githubusercontent.com/workleap/wl-api-guidelines/{0}/.spectral.{1}.yaml";
 
     private readonly ILoggerWrapper _loggerWrapper;
     private readonly IHttpClientWrapper _httpClientWrapper;

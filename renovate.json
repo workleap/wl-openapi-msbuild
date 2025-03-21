@@ -1,8 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>gsoft-inc/renovate-config",
-    "github>gsoft-inc/renovate-config:all-automerge.json"
+    "github>workleap/renovate-config",
+    "github>workleap/renovate-config:all-automerge.json"
   ],
   "packageRules": [
     {
@@ -28,6 +28,17 @@
         "/^Microsoft\\.(Extensions|AspNetCore)\\./",
         "/^System\\./",
         "/^Microsoft\\.CodeAnalysis\\.CSharp\\./"
+      ]
+    },
+    {
+      "matchManagers": [
+        "nuget"
+      ],
+      "groupName": "Ignored MSBuild dependencies",
+      "description": "We want to be compatible with more tools (VS, Rider, dotnet, etc.), so we prefer using an older version",
+      "enabled": false,
+      "matchPackageNames": [
+        "/^Microsoft\\.Build\\.Utilities/"
       ]
     }
   ],

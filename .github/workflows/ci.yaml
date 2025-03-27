@@ -41,7 +41,7 @@ jobs:
         id: get_secrets
         run: |
           # Set env.ADO_PAT
-          ADO_PAT=$(az keyvault secret show --vault-name ${{ vars.IDP_CICD_KEYVAULT_NAME }} --name "renovate-github-pat" --query value -o tsv)
+          ADO_PAT=$(az keyvault secret show --vault-name ${{ vars.IDP_CICD_KEYVAULT_NAME }} --name "gsoft-nuget-feed-ado-pat" --query value -o tsv)
           echo "::add-mask::$ADO_PAT"
           echo "ado_pat=$ADO_PAT" >> $GITHUB_OUTPUT
 

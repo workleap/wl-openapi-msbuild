@@ -16,6 +16,8 @@ Process {
     $outputDir = Join-Path $PSScriptRoot ".output"
     $nupkgsPath = Join-Path $outputDir "*.nupkg"
 
+    # Dummy comment 
+
     try {
         Push-Location $workingDir
         Remove-Item $outputDir -Force -Recurse -ErrorAction SilentlyContinue

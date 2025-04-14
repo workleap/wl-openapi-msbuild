@@ -21,7 +21,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get gsoft-nuget-feed secret
+      - name: Get nuget.org secret
         id: get_nuget_feed_secret
         uses: workleap/wl-reusable-workflows/retrieve-managed-secret@main
         with:

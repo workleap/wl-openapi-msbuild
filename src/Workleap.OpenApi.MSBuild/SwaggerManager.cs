@@ -5,7 +5,7 @@ namespace Workleap.OpenApi.MSBuild;
 
 internal sealed class SwaggerManager : ISwaggerManager
 {
-    private const string SwaggerVersion = "7.2.0";
+    private const string SwaggerVersion = "8.1.1";
     private const string DoNotEditComment = "# DO NOT EDIT. This is a generated file\n";
     private const int MaxRetryCount = 3;
     private readonly IProcessWrapper _processWrapper;

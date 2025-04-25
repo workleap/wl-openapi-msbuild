@@ -15,14 +15,14 @@ public sealed class SystemTests(ITestOutputHelper testOutputHelper, SystemTestFi
     // Testing Generate Contract Mode
     [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=GenerateContract" })] // Then Should Successfully Build
     [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=CodeFirst" })] // When using legacy name / Then Should Successfully Build
-    [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=GenerateContract;OpenApiCompareCodeAgainstSpecFile=true" })] // When Comparing Spec and No Diff Error / Then Should Successfully Build 
+    [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=GenerateContract;OpenApiCompareCodeAgainstSpecFile=true" })] // When Comparing Spec and No Diff Error / Then Should Successfully Build
     [InlineData(OasDiffErrorSysTestDir, true, new string[] { "/p:OpenApiDevelopmentMode=GenerateContract;OpenApiCompareCodeAgainstSpecFile=true" })] // When Comparing Spec and Have Diff / Then Should Fail Build
 
     // Testing Compare Contract Mode
     [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=ValidateContract" })] // Given no diff / Then Should Successfully Build
     [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=ContractFirst" })] // Given no diff / When using legacy name / Then Should Successfully Build
     [InlineData(OasDiffErrorSysTestDir, true, new string[] { "/p:OpenApiDevelopmentMode=ValidateContract" })] // Given diff / Then Should Fail Build
-    [InlineData(OasDiffErrorSysTestDir, false, new string[] { "/p:OpenApiTreatWarningsAsErrors=false" })] // Given diff / When OpenApiTreatWarningsAsErrors=false / Then Should Successfully Build
+    [InlineData(OasDiffErrorSysTestDir, false, new string[] { "/p:OpenApiTreatWarningsAsErrors=false" })] // Given diff / When OpenApiTreatWarningsAsErrors=false / Then Should Successfully Bui// ld
 
     // Testing Spectral Validation
     [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=GenerateContract;OpenApiServiceProfile=frontend" })] // Given no spectral violation / When using frontend profile / Then Should Successfully Build
@@ -43,7 +43,7 @@ public sealed class SystemTests(ITestOutputHelper testOutputHelper, SystemTestFi
             File.Copy(file, destFileName, overwrite: false);
         }
 
-        // Ensure 
+        // Ensure
         await projectDir.CreateTextFileAsync("NuGet.config", $"""
                 <configuration>
                   <config>

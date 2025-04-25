@@ -22,7 +22,7 @@ public sealed class SystemTests(ITestOutputHelper testOutputHelper, SystemTestFi
     [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=ValidateContract" })] // Given no diff / Then Should Successfully Build
     [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=ContractFirst" })] // Given no diff / When using legacy name / Then Should Successfully Build
     [InlineData(OasDiffErrorSysTestDir, true, new string[] { "/p:OpenApiDevelopmentMode=ValidateContract" })] // Given diff / Then Should Fail Build
-    [InlineData(OasDiffErrorSysTestDir, false, new string[] { "/p:OpenApiTreatWarningsAsErrors=false" })] // Given diff / When OpenApiTreatWarningsAsErrors=false / Then Should Successfully Bui// ld
+    [InlineData(OasDiffErrorSysTestDir, false, new string[] { "/p:OpenApiTreatWarningsAsErrors=false" })] // Given diff / When OpenApiTreatWarningsAsErrors=false / Then Should Successfully Build
 
     // Testing Spectral Validation
     [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=GenerateContract;OpenApiServiceProfile=frontend" })] // Given no spectral violation / When using frontend profile / Then Should Successfully Build

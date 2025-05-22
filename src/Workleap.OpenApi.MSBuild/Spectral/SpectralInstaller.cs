@@ -3,7 +3,7 @@
 internal class SpectralInstaller
 {
     // If the line below changes, make sure to update the corresponding regex on the renovate.json file
-    private const string SpectralVersion = "6.14.3";
+    private const string SpectralVersion = "v6.15.0";
     private const string SpectralDownloadUrlFormat = "https://github.com/stoplightio/spectral/releases/download/v{0}/{1}";
 
     private readonly ILoggerWrapper _loggerWrapper;

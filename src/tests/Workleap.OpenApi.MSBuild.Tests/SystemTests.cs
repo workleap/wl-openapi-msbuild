@@ -15,7 +15,7 @@ public sealed class SystemTests(ITestOutputHelper testOutputHelper, SystemTestFi
     // Testing Generate Contract Mode
     [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=GenerateContract" })] // Then Should Successfully Build
     [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=CodeFirst" })] // When using legacy name / Then Should Successfully Build
-    [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=GenerateContract;OpenApiCompareCodeAgainstSpecFile=true" })] // When Comparing Spec and No Diff Error / Then Should Successfully Build 
+    [InlineData(GenericSysTestDir, false, new string[] { "/p:OpenApiDevelopmentMode=GenerateContract;OpenApiCompareCodeAgainstSpecFile=true" })] // When Comparing Spec and No Diff Error / Then Should Successfully Build
     [InlineData(OasDiffErrorSysTestDir, true, new string[] { "/p:OpenApiDevelopmentMode=GenerateContract;OpenApiCompareCodeAgainstSpecFile=true" })] // When Comparing Spec and Have Diff / Then Should Fail Build
 
     // Testing Compare Contract Mode
@@ -43,7 +43,7 @@ public sealed class SystemTests(ITestOutputHelper testOutputHelper, SystemTestFi
             File.Copy(file, destFileName, overwrite: false);
         }
 
-        // Ensure 
+        // Ensure
         await projectDir.CreateTextFileAsync("NuGet.config", $"""
                 <configuration>
                   <config>

@@ -4,7 +4,7 @@ internal class SpectralInstaller
 {
     // If the line below changes, make sure to update the corresponding regex on the renovate.json file
     private const string SpectralVersion = "v6.15.0";
-    private const string SpectralDownloadUrlFormat = "https://github.com/stoplightio/spectral/releases/download/v{0}/{1}";
+    private const string SpectralDownloadUrlFormat = "https://github.com/stoplightio/spectral/releases/download/{0}/{1}";
 
     private readonly ILoggerWrapper _loggerWrapper;
     private readonly IHttpClientWrapper _httpClientWrapper;
@@ -34,7 +34,15 @@ internal class SpectralInstaller
         var url = string.Format(SpectralDownloadUrlFormat, SpectralVersion, executablePath);
         var destination = Path.Combine(this._spectralDirectory, executablePath);
 
-        await this._httpClientWrapper.DownloadFileToDestinationAsync(url, destination, cancellationToken);
+        try
+        {
+            await this._httpClientWrapper.DownloadFileToDestinationAsync(url, destination, cancellationToken);
+        }
+        catch (Exception)
+        {
+            this._loggerWrapper.LogWarning("Failed to download Spectral from {0} to {1}.", url, destination);
+            throw;
+        }
 
         this._loggerWrapper.LogMessage("Spectral installation completed.");
 

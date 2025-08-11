@@ -46,8 +46,8 @@
     {
       "description": "Custom manager for renovating spectral version listed in .cs files",
       "customType": "regex",
-      "fileMatch": [
-        "\\.cs$"
+      "managerFilePatterns": [
+        "/\\.cs$/"
       ],
       "matchStringsStrategy": "any",
       "matchStrings": [
@@ -59,8 +59,8 @@
     {
       "description": "Custom manager for renovating oasdiff version listed in .cs files",
       "customType": "regex",
-      "fileMatch": [
-        "\\.cs$"
+      "managerFilePatterns": [
+        "/\\.cs$/"
       ],
       "matchStringsStrategy": "any",
       "matchStrings": [
@@ -72,8 +72,8 @@
     {
       "description": "Custom manager for renovating Swagger CLI version listed in .cs files",
       "customType": "regex",
-      "fileMatch": [
-        "\\.cs$"
+      "managerFilePatterns": [
+        "/\\.cs$/"
       ],
       "matchStringsStrategy": "any",
       "matchStrings": [

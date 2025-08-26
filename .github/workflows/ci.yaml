@@ -32,7 +32,7 @@ jobs:
       - name: Authenticate to Azure Artifacts
         uses: workleap/wl-reusable-workflows/az-artifact-authenticate@main
         with:
-          feed-url: ${{ secrets.NUGET_GSOFTDEV_FEED_URL }}
+          feed-url: ${{ vars.GSOFTDEV_NUGET_SOURCE }}
           variables: ${{ toJSON(vars) }}
 
       - uses: actions/setup-dotnet@v4

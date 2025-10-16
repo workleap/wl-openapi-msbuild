@@ -11,5 +11,6 @@ jobs:
   call-workflow-semgrep:
     permissions:
       contents: read
+      actions: read
       security-events: write
     uses: workleap/wl-reusable-workflows/.github/workflows/reusable-semgrep-workflow.yml@main

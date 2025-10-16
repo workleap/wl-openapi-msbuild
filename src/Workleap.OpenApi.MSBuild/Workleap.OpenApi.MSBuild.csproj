@@ -6,13 +6,25 @@
 
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
+    
+    <!-- Copied all dependencies in the output folder, so we can add them to the "tools\task" folder -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.9.0" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.10.46" />
-    <PackageReference Include="YamlDotNet" Version="16.3.0" />
+    <!-- 
+      MSBuild task packages must include all dependencies in their package structure.
+      Using PrivateAssets="all" prevents these dependencies from appearing in the .nuspec file (implicitly generated when using `dotnet pack`),
+      which ensures they won't be automatically restored by NuGet when the package is installed.
+      
+      Instead, we manually copy all dependency DLLs into the "tools\task" folder (see PackagePath below),
+      so the MSBuild task can load them directly at build time without requiring separate NuGet restoration.
+      
+      This is different from regular .NET libraries where NuGet automatically restores dependencies.
+    -->
+    <PackageReference Include="CliWrap" Version="3.9.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.10.46" PrivateAssets="all" />
+    <PackageReference Include="YamlDotNet" Version="16.3.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

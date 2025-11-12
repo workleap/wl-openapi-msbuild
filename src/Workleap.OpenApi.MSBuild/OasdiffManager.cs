@@ -10,8 +10,6 @@ internal sealed class OasdiffManager : IOasdiffManager
     private const string OasdiffVersion = "1.11.7";
     private const string OasdiffDownloadUrlFormat = "https://github.com/Tufin/oasdiff/releases/download/v{0}/{1}";
 
-    private static readonly string[] LineSeparators = ["\n", "\r"];
-
     private readonly ILoggerWrapper _loggerWrapper;
     private readonly IHttpClientWrapper _httpClientWrapper;
     private readonly IProcessWrapper _processWrapper;
@@ -27,7 +25,7 @@ internal sealed class OasdiffManager : IOasdiffManager
 
     public async Task InstallOasdiffAsync(CancellationToken cancellationToken)
     {
-        this._loggerWrapper.LogMessage("🔧 Installing OasDiff tool...");
+        this._loggerWrapper.LogMessage($"🔧 Installing OasDiff {OasdiffVersion}...");
 
         Directory.CreateDirectory(this._oasdiffDirectory);
 
@@ -37,7 +35,7 @@ internal sealed class OasdiffManager : IOasdiffManager
         await this._httpClientWrapper.DownloadFileToDestinationAsync(url, Path.Combine(this._oasdiffDirectory, oasdiffFileName), cancellationToken);
         await this.DecompressDownloadedFileAsync(oasdiffFileName, cancellationToken);
 
-        this._loggerWrapper.LogMessage($"✅ OasDiff v{OasdiffVersion} installed successfully.");
+        this._loggerWrapper.LogMessage($"✅ OasDiff {OasdiffVersion} installed successfully.");
     }
 
     public async Task RunOasdiffAsync(IReadOnlyCollection<string> openApiSpecFiles, IReadOnlyCollection<string> generatedOpenApiSpecFiles, CancellationToken cancellationToken)
@@ -70,7 +68,7 @@ internal sealed class OasdiffManager : IOasdiffManager
             this._loggerWrapper.LogMessage($"📄 Specification file: {baseSpecFile}", MessageImportance.High);
             this._loggerWrapper.LogMessage($"🔧 Generated from code: {generatedSpecFilePath}", MessageImportance.High);
 
-            var result = await this._processWrapper.RunProcessAsync(oasdiffExecutePath, new[] { "diff", baseSpecFile, generatedSpecFilePath, "--exclude-elements", "description,examples,title,summary", "-o" }, cancellationToken);
+            var result = await this._processWrapper.RunProcessAsync(oasdiffExecutePath, new[] { "diff", baseSpecFile, generatedSpecFilePath, "--exclude-elements", "description,examples,title,summary", "--fail-on-diff", "--format", "yaml" }, cancellationToken);
 
             if (!string.IsNullOrEmpty(result.StandardError))
             {
@@ -84,15 +82,11 @@ internal sealed class OasdiffManager : IOasdiffManager
             }
 
             var isChangesDetected = result.ExitCode != 0;
-
             if (isChangesDetected)
             {
                 hasAnyChanges = true;
                 this._loggerWrapper.LogWarning($"⚠️ Breaking changes detected in {fileName}. Your web API does not respect the provided OpenAPI specification.");
-
-                // Parse and format the output for better readability
-                var formattedOutput = FormatOasDiffOutput(result.StandardOutput);
-                this._loggerWrapper.LogMessage(formattedOutput, MessageImportance.High);
+                this._loggerWrapper.LogMessage(result.StandardOutput, MessageImportance.High);
             }
             else
             {
@@ -143,51 +137,5 @@ internal sealed class OasdiffManager : IOasdiffManager
         }
 
         return fileName;
-    }
-
-    private static string FormatOasDiffOutput(string output)
-    {
-        if (string.IsNullOrWhiteSpace(output))
-        {
-            return "No detailed output available.";
-        }
-
-        // Clean up the output and add better formatting
-        var lines = output.Split(LineSeparators, StringSplitOptions.RemoveEmptyEntries);
-        var formattedLines = new List<string>();
-
-        foreach (var line in lines)
-        {
-            var trimmedLine = line.Trim();
-
-            if (string.IsNullOrEmpty(trimmedLine))
-            {
-                continue;
-            }
-
-            // Add visual indicators for different types of changes
-            if (trimmedLine.Contains("BREAKING") || trimmedLine.Contains("breaking"))
-            {
-                formattedLines.Add($"🚨 {trimmedLine}");
-            }
-            else if (trimmedLine.Contains("added") || trimmedLine.Contains("new"))
-            {
-                formattedLines.Add($"✨ {trimmedLine}");
-            }
-            else if (trimmedLine.Contains("removed") || trimmedLine.Contains("deleted"))
-            {
-                formattedLines.Add($"🗑️ {trimmedLine}");
-            }
-            else if (trimmedLine.Contains("modified") || trimmedLine.Contains("changed"))
-            {
-                formattedLines.Add($"📝 {trimmedLine}");
-            }
-            else
-            {
-                formattedLines.Add($"• {trimmedLine}");
-            }
-        }
-
-        return formattedLines.Any() ? string.Join("\n", formattedLines) : "No breaking changes found.";
     }
 }

@@ -10,6 +10,8 @@ internal sealed class OasdiffManager : IOasdiffManager
     private const string OasdiffVersion = "1.11.7";
     private const string OasdiffDownloadUrlFormat = "https://github.com/Tufin/oasdiff/releases/download/v{0}/{1}";
 
+    private static readonly string[] LineSeparators = ["\n", "\r"];
+
     private readonly ILoggerWrapper _loggerWrapper;
     private readonly IHttpClientWrapper _httpClientWrapper;
     private readonly IProcessWrapper _processWrapper;
@@ -25,7 +27,7 @@ internal sealed class OasdiffManager : IOasdiffManager
 
     public async Task InstallOasdiffAsync(CancellationToken cancellationToken)
     {
-        this._loggerWrapper.LogMessage("Starting Oasdiff installation.");
+        this._loggerWrapper.LogMessage("🔧 Installing OasDiff tool...");
 
         Directory.CreateDirectory(this._oasdiffDirectory);
 
@@ -35,50 +37,77 @@ internal sealed class OasdiffManager : IOasdiffManager
         await this._httpClientWrapper.DownloadFileToDestinationAsync(url, Path.Combine(this._oasdiffDirectory, oasdiffFileName), cancellationToken);
         await this.DecompressDownloadedFileAsync(oasdiffFileName, cancellationToken);
 
-        this._loggerWrapper.LogMessage("Oasdiff installation completed.");
+        this._loggerWrapper.LogMessage($"✅ OasDiff v{OasdiffVersion} installed successfully.");
     }
 
     public async Task RunOasdiffAsync(IReadOnlyCollection<string> openApiSpecFiles, IReadOnlyCollection<string> generatedOpenApiSpecFiles, CancellationToken cancellationToken)
     {
         var generatedOpenApiSpecFilesList = generatedOpenApiSpecFiles.ToList();
         var oasdiffExecutePath = Path.Combine(this._oasdiffDirectory, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "oasdiff.exe" : "oasdiff");
+        var isGitHubActions = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
 
         var filesPath = generatedOpenApiSpecFiles.ToDictionary(Path.GetFileName, x => x);
+        var hasAnyChanges = false;
 
         foreach (var baseSpecFile in openApiSpecFiles)
         {
             var fileName = Path.GetFileName(baseSpecFile);
 
-            this._loggerWrapper.LogMessage($"\n ******** Oasdiff: Diff comparison with {fileName} ******** \n", MessageImportance.High);
+            this._loggerWrapper.LogMessage($"🔍 OasDiff: Comparing specifications for {fileName}...", MessageImportance.High);
 
             var isFileFound = filesPath.TryGetValue(fileName, out var generatedSpecFilePath);
             if (!isFileFound || string.IsNullOrEmpty(generatedSpecFilePath))
             {
-                this._loggerWrapper.LogWarning($"Could not find a generated spec file for {fileName}.");
+                this._loggerWrapper.LogWarning($"⚠️ Could not find a generated spec file for {fileName}.");
                 continue;
             }
 
-            this._loggerWrapper.LogMessage("- Specification file path: {0}", MessageImportance.High, baseSpecFile);
-            this._loggerWrapper.LogMessage("- Specification generated from code path: {0} \n", MessageImportance.High, generatedSpecFilePath);
+            if (isGitHubActions)
+            {
+                this._loggerWrapper.LogMessage($"::group::📋 OasDiff Comparison Details for {fileName}");
+            }
+
+            this._loggerWrapper.LogMessage($"📄 Specification file: {baseSpecFile}", MessageImportance.High);
+            this._loggerWrapper.LogMessage($"🔧 Generated from code: {generatedSpecFilePath}", MessageImportance.High);
 
             var result = await this._processWrapper.RunProcessAsync(oasdiffExecutePath, new[] { "diff", baseSpecFile, generatedSpecFilePath, "--exclude-elements", "description,examples,title,summary", "-o" }, cancellationToken);
-            if (string.IsNullOrEmpty(result.StandardError))
+
+            if (!string.IsNullOrEmpty(result.StandardError))
             {
-                var isChangesDetected = result.ExitCode != 0;
-                this._loggerWrapper.LogMessage("Oasdiff returned: {0}", MessageImportance.Normal, result.ExitCode);
-                if (isChangesDetected)
+                this._loggerWrapper.LogWarning($"❌ OasDiff error: {result.StandardError}");
+                if (isGitHubActions)
                 {
-                    this._loggerWrapper.LogWarning($"Your web API does not respect the following OpenAPI specification: {fileName}. Please review the logs below for details.");
+                    this._loggerWrapper.LogMessage("::endgroup::");
                 }
 
-                this._loggerWrapper.LogMessage(result.StandardOutput, MessageImportance.High);
+                continue;
+            }
+
+            var isChangesDetected = result.ExitCode != 0;
+
+            if (isChangesDetected)
+            {
+                hasAnyChanges = true;
+                this._loggerWrapper.LogWarning($"⚠️ Breaking changes detected in {fileName}. Your web API does not respect the provided OpenAPI specification.");
+
+                // Parse and format the output for better readability
+                var formattedOutput = FormatOasDiffOutput(result.StandardOutput);
+                this._loggerWrapper.LogMessage(formattedOutput, MessageImportance.High);
             }
             else
             {
-                this._loggerWrapper.LogWarning(result.StandardError);
+                this._loggerWrapper.LogMessage($"✅ No breaking changes detected in {fileName}.", MessageImportance.High);
             }
 
-            this._loggerWrapper.LogMessage($"\n ****************************************************************", MessageImportance.High);
+            if (isGitHubActions)
+            {
+                this._loggerWrapper.LogMessage("::endgroup::");
+            }
+        }
+
+        if (!hasAnyChanges && openApiSpecFiles.Any())
+        {
+            this._loggerWrapper.LogMessage("🎉 All OpenAPI specifications are in sync with your code!", MessageImportance.High);
         }
     }
 
@@ -114,5 +143,51 @@ internal sealed class OasdiffManager : IOasdiffManager
         }
 
         return fileName;
+    }
+
+    private static string FormatOasDiffOutput(string output)
+    {
+        if (string.IsNullOrWhiteSpace(output))
+        {
+            return "No detailed output available.";
+        }
+
+        // Clean up the output and add better formatting
+        var lines = output.Split(LineSeparators, StringSplitOptions.RemoveEmptyEntries);
+        var formattedLines = new List<string>();
+
+        foreach (var line in lines)
+        {
+            var trimmedLine = line.Trim();
+
+            if (string.IsNullOrEmpty(trimmedLine))
+            {
+                continue;
+            }
+
+            // Add visual indicators for different types of changes
+            if (trimmedLine.Contains("BREAKING") || trimmedLine.Contains("breaking"))
+            {
+                formattedLines.Add($"🚨 {trimmedLine}");
+            }
+            else if (trimmedLine.Contains("added") || trimmedLine.Contains("new"))
+            {
+                formattedLines.Add($"✨ {trimmedLine}");
+            }
+            else if (trimmedLine.Contains("removed") || trimmedLine.Contains("deleted"))
+            {
+                formattedLines.Add($"🗑️ {trimmedLine}");
+            }
+            else if (trimmedLine.Contains("modified") || trimmedLine.Contains("changed"))
+            {
+                formattedLines.Add($"📝 {trimmedLine}");
+            }
+            else
+            {
+                formattedLines.Add($"• {trimmedLine}");
+            }
+        }
+
+        return formattedLines.Any() ? string.Join("\n", formattedLines) : "No breaking changes found.";
     }
 }

@@ -62,7 +62,7 @@ internal sealed class OasdiffManager : IOasdiffManager
 
             if (isGitHubActions)
             {
-                this._loggerWrapper.LogMessage($"::group::📋 OasDiff Comparison Details for {fileName}");
+                Console.WriteLine($"::group::📋 OasDiff Comparison Details for {fileName}");
             }
 
             this._loggerWrapper.LogMessage($"📄 Specification file: {baseSpecFile}", MessageImportance.High);
@@ -75,7 +75,7 @@ internal sealed class OasdiffManager : IOasdiffManager
                 this._loggerWrapper.LogWarning($"❌ OasDiff error: {result.StandardError}");
                 if (isGitHubActions)
                 {
-                    this._loggerWrapper.LogMessage("::endgroup::");
+                    Console.WriteLine("::endgroup::");
                 }
 
                 continue;
@@ -95,7 +95,7 @@ internal sealed class OasdiffManager : IOasdiffManager
 
             if (isGitHubActions)
             {
-                this._loggerWrapper.LogMessage("::endgroup::");
+                Console.WriteLine("::endgroup::");
             }
         }
 

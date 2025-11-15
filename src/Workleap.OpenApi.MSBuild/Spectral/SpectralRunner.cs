@@ -35,46 +35,72 @@ internal sealed class SpectralRunner
 
     public async Task RunSpectralAsync(IReadOnlyCollection<string> openApiDocumentPaths, string spectralExecutablePath, string spectralRulesetPath, CancellationToken cancellationToken)
     {
-        this._loggerWrapper.LogMessage("\n ******** Spectral: Validating OpenAPI Documents against ruleset ********", MessageImportance.High);
+        var isGitHubActions = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
+        if (isGitHubActions)
+        {
+            Console.WriteLine("::group::🔍 Spectral: Validating OpenAPI Documents");
+        }
+        else
+        {
+            this._loggerWrapper.LogMessage("\n🔍 Spectral: Validating OpenAPI Documents", MessageImportance.High);
+        }
 
         var shouldRunSpectral = await this.ShouldRunSpectral(spectralRulesetPath, openApiDocumentPaths);
         if (!shouldRunSpectral)
         {
-            this._loggerWrapper.LogMessage("\n=> Spectral step skipped since the OpenAPI document and ruleset have not changed.", MessageImportance.High);
+            this._loggerWrapper.LogMessage("⏭️ Spectral validation skipped (no changes detected)", MessageImportance.High);
             foreach (var documentPath in openApiDocumentPaths)
             {
-                this._loggerWrapper.LogMessage("- Check previous report here: {0}", MessageImportance.High, messageArgs: this.GetReportPath(documentPath));
+                this._loggerWrapper.LogMessage("📄 Previous report: {0}", MessageImportance.High, messageArgs: this.GetReportPath(documentPath));
                 this.DisplayPreviousSpectralReport(documentPath);
             }
 
-            this._loggerWrapper.LogMessage("\n ****************************************************************", MessageImportance.High);
+            if (isGitHubActions)
+            {
+                Console.WriteLine("::endgroup::");
+            }
+
             return;
         }
 
-        this._loggerWrapper.LogMessage("Starting Spectral report generation.");
         var spectralExecutePath = Path.Combine(this._spectralDirectory, spectralExecutablePath);
-
         foreach (var documentPath in openApiDocumentPaths)
         {
             var documentName = Path.GetFileNameWithoutExtension(documentPath);
             var spectralReportPath = this.GetReportPath(documentPath);
 
-            this._loggerWrapper.LogMessage("\n *** Spectral: Validating {0} against ruleset ***", MessageImportance.High, documentName);
-            this._loggerWrapper.LogMessage("- File path: {0}", MessageImportance.High, documentPath);
-            this._loggerWrapper.LogMessage("- Ruleset : {0}\n", MessageImportance.High, spectralRulesetPath);
+            if (isGitHubActions)
+            {
+                Console.WriteLine($"::group::📋 Validating {documentName}");
+            }
+            else
+            {
+                this._loggerWrapper.LogMessage("\n📋 Validating {0}", MessageImportance.High, documentName);
+            }
+
+            this._loggerWrapper.LogMessage("  📂 Document: {0}", MessageImportance.High, documentPath);
+            this._loggerWrapper.LogMessage("  📏 Ruleset: {0}", MessageImportance.High, spectralRulesetPath);
 
             if (File.Exists(spectralReportPath))
             {
-                this._loggerWrapper.LogMessage("\nDeleting existing report: {0}", messageArgs: spectralReportPath);
                 File.Delete(spectralReportPath);
             }
 
             await this.GenerateSpectralReport(spectralExecutePath, documentPath, spectralRulesetPath, spectralReportPath, cancellationToken);
             CiReportRenderer.AttachReportToBuild(spectralReportPath);
-            this._loggerWrapper.LogMessage("\n ****************************************************************", MessageImportance.High);
+
+            if (isGitHubActions)
+            {
+                Console.WriteLine("::endgroup::");
+            }
         }
 
         this._diffCalculator.SaveCurrentExecutionChecksum(spectralRulesetPath, openApiDocumentPaths);
+
+        if (isGitHubActions)
+        {
+            Console.WriteLine("::endgroup::");
+        }
     }
 
     // Display previous spectral report and log warning if there are any previous spectral errors or warnings
@@ -137,14 +163,18 @@ internal sealed class SpectralRunner
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            this._loggerWrapper.LogMessage("Granting execute permission to {0}", MessageImportance.Normal, spectralExecutePath);
             await this.AssignExecutePermission(spectralExecutePath, cancellationToken);
         }
 
-        this._loggerWrapper.LogMessage("Running Spectral...", MessageImportance.Normal);
+        this._loggerWrapper.LogMessage("  🔄 Running Spectral validation...", MessageImportance.Normal);
         var result = await this._processWrapper.RunProcessAsync(spectralExecutePath, new[] { "lint", swaggerDocumentPath, "--ruleset", rulesetPath, "--format", "pretty", "--format", "stylish", "--output.stylish", spectralReportPath, "--fail-severity=warn", "--verbose" }, cancellationToken);
 
-        this._loggerWrapper.LogMessage(result.StandardOutput, MessageImportance.High);
+        // Only show verbose output if there are errors
+        if (result.ExitCode != 0 && !string.IsNullOrEmpty(result.StandardOutput))
+        {
+            this._loggerWrapper.LogMessage(result.StandardOutput, MessageImportance.High);
+        }
+
         if (!string.IsNullOrEmpty(result.StandardError))
         {
             this._loggerWrapper.LogWarning(result.StandardError);
@@ -157,10 +187,12 @@ internal sealed class SpectralRunner
 
         if (result.ExitCode != 0)
         {
-            this._loggerWrapper.LogWarning($"Spectral scan detected violation of ruleset. Please check the report [{spectralReportPath}] for more details.");
+            this._loggerWrapper.LogWarning($"⚠️ Spectral detected violations. Report: {spectralReportPath}");
         }
-
-        this._loggerWrapper.LogMessage("Spectral report generated. {0}", messageArgs: spectralReportPath);
+        else
+        {
+            this._loggerWrapper.LogMessage($"  ✅ Validation passed. Report: {spectralReportPath}", MessageImportance.Normal);
+        }
     }
 
     private async Task AssignExecutePermission(string spectralExecutePath, CancellationToken cancellationToken)

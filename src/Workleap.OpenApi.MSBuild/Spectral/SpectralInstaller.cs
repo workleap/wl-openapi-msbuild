@@ -1,4 +1,4 @@
-﻿namespace Workleap.OpenApi.MSBuild.Spectral;
+namespace Workleap.OpenApi.MSBuild.Spectral;
 
 internal class SpectralInstaller
 {
@@ -26,7 +26,7 @@ internal class SpectralInstaller
     /// <returns>Return executable path</returns>
     public async Task<string> InstallSpectralAsync(CancellationToken cancellationToken)
     {
-        this._loggerWrapper.LogMessage("Starting Spectral installation.");
+        this._loggerWrapper.LogMessage($"🔧 Installing Spectral {SpectralVersion}...");
 
         Directory.CreateDirectory(this._spectralDirectory);
 
@@ -40,11 +40,11 @@ internal class SpectralInstaller
         }
         catch (Exception)
         {
-            this._loggerWrapper.LogWarning("Failed to download Spectral from {0} to {1}.", url, destination);
+            this._loggerWrapper.LogWarning("❌ Failed to download Spectral from {0} to {1}.", url, destination);
             throw;
         }
 
-        this._loggerWrapper.LogMessage("Spectral installation completed.");
+        this._loggerWrapper.LogMessage($"✅ Spectral {SpectralVersion} installed successfully.");
 
         return executablePath;
     }

@@ -48,6 +48,8 @@ internal sealed class SwaggerManager : ISwaggerManager
             return;
         }
 
+        this._loggerWrapper.LogMessage($"🔧 Installing Swashbuckle.AspNetCore.Cli {SwaggerVersion}...");
+
         for (var retryCount = 0; retryCount < MaxRetryCount; retryCount++)
         {
             var result = await this._processWrapper.RunProcessAsync(
@@ -72,6 +74,8 @@ internal sealed class SwaggerManager : ISwaggerManager
 
             break;
         }
+
+        this._loggerWrapper.LogMessage($"✅ Swashbuckle.AspNetCore.Cli {SwaggerVersion} installed successfully.");
     }
 
     public async Task<string> GenerateOpenApiSpecAsync(string swaggerExePath, string outputOpenApiSpecPath, string documentName, CancellationToken cancellationToken)

@@ -60,7 +60,7 @@
       <!-- Fallback chain: explicit property -> PackageVersion (CPM) -> PackageReference -> default -->
       <OpenApiSwaggerVersion Condition="'$(OpenApiSwaggerVersion)' == ''">@(PackageVersion->WithMetadataValue('Identity', 'Swashbuckle.AspNetCore')->Metadata('Version'))</OpenApiSwaggerVersion>
       <OpenApiSwaggerVersion Condition="'$(OpenApiSwaggerVersion)' == ''">@(PackageReference->WithMetadataValue('Identity', 'Swashbuckle.AspNetCore')->Metadata('Version'))</OpenApiSwaggerVersion>
-      <OpenApiSwaggerVersion Condition="'$(OpenApiSwaggerVersion)' == ''">9.0.6</OpenApiSwaggerVersion>
+      <OpenApiSwaggerVersion Condition="'$(OpenApiSwaggerVersion)' == ''">10.1.0</OpenApiSwaggerVersion>
     </PropertyGroup>
 
     <ItemGroup>

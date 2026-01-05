@@ -12,7 +12,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
   </ItemGroup>
   <PropertyGroup>
-    <OpenApiEnabled>false</OpenApiEnabled>
+    <OpenApiEnabled>true</OpenApiEnabled>
     <OpenApiDebuggingEnabled>true</OpenApiDebuggingEnabled>
     <OpenApiDevelopmentMode>GenerateContract</OpenApiDevelopmentMode>
   </PropertyGroup>

@@ -141,13 +141,14 @@ internal sealed class SwaggerManager : ISwaggerManager
 
         try
         {
-            // Look for Swashbuckle.AspNetCore.dll in the assembly directory
-            var swashbuckleAssemblyPath = Path.Combine(assemblyDirectory, "Swashbuckle.AspNetCore.dll");
+            // Look for Swashbuckle.AspNetCore.SwaggerGen.dll in the assembly directory
+            // (Swashbuckle.AspNetCore is a metapackage, so we check for one of its actual assemblies)
+            var swashbuckleAssemblyPath = Path.Combine(assemblyDirectory, "Swashbuckle.AspNetCore.SwaggerGen.dll");
 
             if (!File.Exists(swashbuckleAssemblyPath))
             {
                 // Try searching in subdirectories (sometimes dependencies are in different locations)
-                var searchPattern = "Swashbuckle.AspNetCore.dll";
+                var searchPattern = "Swashbuckle.AspNetCore.SwaggerGen.dll";
                 var files = Directory.GetFiles(assemblyDirectory, searchPattern, SearchOption.AllDirectories);
 
                 if (files.Length > 0)
@@ -156,7 +157,7 @@ internal sealed class SwaggerManager : ISwaggerManager
                 }
                 else
                 {
-                    this._loggerWrapper.LogMessage("Could not detect Swashbuckle version: Swashbuckle.AspNetCore.dll not found. Using default version.", MessageImportance.Low);
+                    this._loggerWrapper.LogMessage("Could not detect Swashbuckle version: Swashbuckle.AspNetCore.SwaggerGen.dll not found. Using default version.", MessageImportance.Low);
                     return null;
                 }
             }

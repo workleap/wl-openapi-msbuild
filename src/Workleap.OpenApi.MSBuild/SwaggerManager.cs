@@ -147,19 +147,8 @@ internal sealed class SwaggerManager : ISwaggerManager
 
             if (!File.Exists(swashbuckleAssemblyPath))
             {
-                // Try searching in subdirectories (sometimes dependencies are in different locations)
-                var searchPattern = "Swashbuckle.AspNetCore.SwaggerGen.dll";
-                var files = Directory.GetFiles(assemblyDirectory, searchPattern, SearchOption.AllDirectories);
-
-                if (files.Length > 0)
-                {
-                    swashbuckleAssemblyPath = files[0];
-                }
-                else
-                {
-                    this._loggerWrapper.LogMessage("Could not detect Swashbuckle version: Swashbuckle.AspNetCore.SwaggerGen.dll not found. Using default version.", MessageImportance.Low);
-                    return null;
-                }
+                this._loggerWrapper.LogMessage("Could not detect Swashbuckle version: Swashbuckle.AspNetCore.SwaggerGen.dll not found in assembly directory. Using default version.", MessageImportance.Low);
+                return null;
             }
 
             // Get the assembly version using FileVersionInfo (doesn't load the assembly)

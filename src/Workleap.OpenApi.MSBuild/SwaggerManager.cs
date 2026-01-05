@@ -5,7 +5,6 @@ namespace Workleap.OpenApi.MSBuild;
 
 internal sealed class SwaggerManager : ISwaggerManager
 {
-    private const string SwaggerVersion = "10.1.0";
     private const string DoNotEditComment = "# DO NOT EDIT. This is a generated file\n";
     private const int MaxRetryCount = 3;
     private readonly IProcessWrapper _processWrapper;
@@ -14,14 +13,16 @@ internal sealed class SwaggerManager : ISwaggerManager
     private readonly string _swaggerDirectory;
     private readonly string _openApiToolsDirectoryPath;
     private readonly string _swaggerExecutablePath;
+    private readonly string _swaggerVersion;
 
-    public SwaggerManager(ILoggerWrapper loggerWrapper, IProcessWrapper processWrapper, string openApiToolsDirectoryPath, string openApiWebApiAssemblyPath)
+    public SwaggerManager(ILoggerWrapper loggerWrapper, IProcessWrapper processWrapper, string openApiToolsDirectoryPath, string openApiWebApiAssemblyPath, string swaggerVersion)
     {
         this._processWrapper = processWrapper;
         this._loggerWrapper = loggerWrapper;
         this._openApiWebApiAssemblyPath = openApiWebApiAssemblyPath;
         this._openApiToolsDirectoryPath = openApiToolsDirectoryPath;
-        this._swaggerDirectory = Path.Combine(openApiToolsDirectoryPath, "swagger", SwaggerVersion);
+        this._swaggerVersion = swaggerVersion;
+        this._swaggerDirectory = Path.Combine(openApiToolsDirectoryPath, "swagger", swaggerVersion);
         this._swaggerExecutablePath = Path.Combine(this._swaggerDirectory, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "swagger.exe" : "swagger");
     }
 
@@ -48,13 +49,13 @@ internal sealed class SwaggerManager : ISwaggerManager
             return;
         }
 
-        this._loggerWrapper.LogMessage($"🔧 Installing Swashbuckle.AspNetCore.Cli {SwaggerVersion}...");
+        this._loggerWrapper.LogMessage($"🔧 Installing Swashbuckle.AspNetCore.Cli {this._swaggerVersion}...");
 
         for (var retryCount = 0; retryCount < MaxRetryCount; retryCount++)
         {
             var result = await this._processWrapper.RunProcessAsync(
                 "dotnet",
-                ["tool", "update", "Swashbuckle.AspNetCore.Cli", "--ignore-failed-sources", "--tool-path", this._swaggerDirectory, "--configfile", Path.Combine(this._openApiToolsDirectoryPath, "nuget.config"), "--version", SwaggerVersion],
+                ["tool", "update", "Swashbuckle.AspNetCore.Cli", "--ignore-failed-sources", "--tool-path", this._swaggerDirectory, "--configfile", Path.Combine(this._openApiToolsDirectoryPath, "nuget.config"), "--version", this._swaggerVersion],
                 cancellationToken);
 
             var isLastRetry = retryCount == MaxRetryCount - 1;
@@ -75,7 +76,7 @@ internal sealed class SwaggerManager : ISwaggerManager
             break;
         }
 
-        this._loggerWrapper.LogMessage($"✅ Swashbuckle.AspNetCore.Cli {SwaggerVersion} installed successfully.");
+        this._loggerWrapper.LogMessage($"✅ Swashbuckle.AspNetCore.Cli {this._swaggerVersion} installed successfully.");
     }
 
     public async Task<string> GenerateOpenApiSpecAsync(string swaggerExePath, string outputOpenApiSpecPath, string documentName, CancellationToken cancellationToken)

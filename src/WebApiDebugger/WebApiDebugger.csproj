@@ -5,14 +5,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
-    <OpenApiEnabled>true</OpenApiEnabled>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
   </ItemGroup>
   <PropertyGroup>
-    <OpenApiEnabled>false</OpenApiEnabled>
+    <OpenApiEnabled>true</OpenApiEnabled>
     <OpenApiDebuggingEnabled>true</OpenApiDebuggingEnabled>
     <OpenApiDevelopmentMode>GenerateContract</OpenApiDevelopmentMode>
   </PropertyGroup>

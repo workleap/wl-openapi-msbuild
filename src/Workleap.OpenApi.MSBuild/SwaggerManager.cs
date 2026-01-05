@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Build.Framework;
 
@@ -5,7 +6,7 @@ namespace Workleap.OpenApi.MSBuild;
 
 internal sealed class SwaggerManager : ISwaggerManager
 {
-    private const string SwaggerVersion = "9.0.4";
+    private const string DefaultSwaggerVersion = "9.0.4";
     private const string DoNotEditComment = "# DO NOT EDIT. This is a generated file\n";
     private const int MaxRetryCount = 3;
     private readonly IProcessWrapper _processWrapper;
@@ -14,6 +15,7 @@ internal sealed class SwaggerManager : ISwaggerManager
     private readonly string _swaggerDirectory;
     private readonly string _openApiToolsDirectoryPath;
     private readonly string _swaggerExecutablePath;
+    private readonly string _swaggerVersion;
 
     public SwaggerManager(ILoggerWrapper loggerWrapper, IProcessWrapper processWrapper, string openApiToolsDirectoryPath, string openApiWebApiAssemblyPath)
     {
@@ -21,7 +23,12 @@ internal sealed class SwaggerManager : ISwaggerManager
         this._loggerWrapper = loggerWrapper;
         this._openApiWebApiAssemblyPath = openApiWebApiAssemblyPath;
         this._openApiToolsDirectoryPath = openApiToolsDirectoryPath;
-        this._swaggerDirectory = Path.Combine(openApiToolsDirectoryPath, "swagger", SwaggerVersion);
+
+        // Detect Swashbuckle version from the application's assemblies
+        var assemblyDirectory = Path.GetDirectoryName(openApiWebApiAssemblyPath);
+        this._swaggerVersion = this.DetectSwashbuckleVersion(assemblyDirectory) ?? DefaultSwaggerVersion;
+
+        this._swaggerDirectory = Path.Combine(openApiToolsDirectoryPath, "swagger", this._swaggerVersion);
         this._swaggerExecutablePath = Path.Combine(this._swaggerDirectory, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "swagger.exe" : "swagger");
     }
 
@@ -48,13 +55,13 @@ internal sealed class SwaggerManager : ISwaggerManager
             return;
         }
 
-        this._loggerWrapper.LogMessage($"🔧 Installing Swashbuckle.AspNetCore.Cli {SwaggerVersion}...");
+        this._loggerWrapper.LogMessage($"🔧 Installing Swashbuckle.AspNetCore.Cli {this._swaggerVersion}...");
 
         for (var retryCount = 0; retryCount < MaxRetryCount; retryCount++)
         {
             var result = await this._processWrapper.RunProcessAsync(
                 "dotnet",
-                ["tool", "update", "Swashbuckle.AspNetCore.Cli", "--ignore-failed-sources", "--tool-path", this._swaggerDirectory, "--configfile", Path.Combine(this._openApiToolsDirectoryPath, "nuget.config"), "--version", SwaggerVersion],
+                ["tool", "update", "Swashbuckle.AspNetCore.Cli", "--ignore-failed-sources", "--tool-path", this._swaggerDirectory, "--configfile", Path.Combine(this._openApiToolsDirectoryPath, "nuget.config"), "--version", this._swaggerVersion],
                 cancellationToken);
 
             var isLastRetry = retryCount == MaxRetryCount - 1;
@@ -75,7 +82,7 @@ internal sealed class SwaggerManager : ISwaggerManager
             break;
         }
 
-        this._loggerWrapper.LogMessage($"✅ Swashbuckle.AspNetCore.Cli {SwaggerVersion} installed successfully.");
+        this._loggerWrapper.LogMessage($"✅ Swashbuckle.AspNetCore.Cli {this._swaggerVersion} installed successfully.");
     }
 
     public async Task<string> GenerateOpenApiSpecAsync(string swaggerExePath, string outputOpenApiSpecPath, string documentName, CancellationToken cancellationToken)
@@ -121,6 +128,60 @@ internal sealed class SwaggerManager : ISwaggerManager
         catch (Exception)
         {
             this._loggerWrapper.LogWarning($"Failed to add comment to generated spec for {outputOpenApiSpecPath}.");
+        }
+    }
+
+    private string? DetectSwashbuckleVersion(string? assemblyDirectory)
+    {
+        if (string.IsNullOrEmpty(assemblyDirectory) || !Directory.Exists(assemblyDirectory))
+        {
+            this._loggerWrapper.LogMessage("Could not detect Swashbuckle version: assembly directory not found. Using default version.", MessageImportance.Low);
+            return null;
+        }
+
+        try
+        {
+            // Look for Swashbuckle.AspNetCore.dll in the assembly directory
+            var swashbuckleAssemblyPath = Path.Combine(assemblyDirectory, "Swashbuckle.AspNetCore.dll");
+
+            if (!File.Exists(swashbuckleAssemblyPath))
+            {
+                // Try searching in subdirectories (sometimes dependencies are in different locations)
+                var searchPattern = "Swashbuckle.AspNetCore.dll";
+                var files = Directory.GetFiles(assemblyDirectory, searchPattern, SearchOption.AllDirectories);
+
+                if (files.Length > 0)
+                {
+                    swashbuckleAssemblyPath = files[0];
+                }
+                else
+                {
+                    this._loggerWrapper.LogMessage("Could not detect Swashbuckle version: Swashbuckle.AspNetCore.dll not found. Using default version.", MessageImportance.Low);
+                    return null;
+                }
+            }
+
+            // Get the assembly version using FileVersionInfo (doesn't load the assembly)
+            var versionInfo = FileVersionInfo.GetVersionInfo(swashbuckleAssemblyPath);
+            var productVersion = versionInfo.ProductVersion;
+
+            if (!string.IsNullOrEmpty(productVersion))
+            {
+                // Product version might include metadata like "9.0.6+commit", extract just the version number
+                var versionParts = productVersion.Split('+', '-');
+                var version = versionParts[0];
+
+                this._loggerWrapper.LogMessage($"✓ Detected Swashbuckle.AspNetCore version: {version}", MessageImportance.Normal);
+                return version;
+            }
+
+            this._loggerWrapper.LogMessage("Could not detect Swashbuckle version from assembly metadata. Using default version.", MessageImportance.Low);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            this._loggerWrapper.LogMessage($"Error detecting Swashbuckle version: {ex.Message}. Using default version.", MessageImportance.Low);
+            return null;
         }
     }
 }

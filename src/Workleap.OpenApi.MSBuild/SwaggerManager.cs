@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
 
 namespace Workleap.OpenApi.MSBuild;
@@ -169,16 +170,16 @@ internal sealed class SwaggerManager : ISwaggerManager
                 var versionParts = productVersion.Split('+', '-');
                 var versionString = versionParts[0];
 
-                // Validate that the extracted version is a valid version string
-                // We don't need to parse as System.Version because NuGet versions support more formats
-                // Just validate it's not empty and looks reasonable
-                if (!string.IsNullOrWhiteSpace(versionString) && versionString.Contains('.'))
+                // Validate that the extracted version matches semantic versioning pattern (e.g., 9.0.4, 10.0.1)
+                // Pattern: 1-4 digits, dot, 1-4 digits, dot, 1-4 digits, optionally followed by more version parts
+                if (!string.IsNullOrWhiteSpace(versionString) &&
+                    Regex.IsMatch(versionString, @"^\d{1,4}\.\d{1,4}(\.\d{1,4})?(\.\d{1,4})?$"))
                 {
                     this._loggerWrapper.LogMessage($"✓ Detected Swashbuckle.AspNetCore version: {versionString}", MessageImportance.Normal);
                     return versionString;
                 }
 
-                this._loggerWrapper.LogMessage($"Detected version '{versionString}' does not appear valid. Using default version.", MessageImportance.Low);
+                this._loggerWrapper.LogMessage($"Detected version '{versionString}' does not match expected format. Using default version.", MessageImportance.Low);
                 return null;
             }
 

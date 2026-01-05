@@ -1,3 +1,4 @@
+# DO NOT EDIT. This is a generated file
 openapi: 3.0.4
 info:
   title: V1 API General
@@ -10,7 +11,7 @@ paths:
       operationId: GetWeatherForecast
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -78,3 +79,5 @@ components:
           type: string
           nullable: true
       additionalProperties: false
+tags:
+  - name: WeatherForecast

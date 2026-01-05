@@ -171,9 +171,10 @@ internal sealed class SwaggerManager : ISwaggerManager
                 var versionString = versionParts[0];
 
                 // Validate that the extracted version matches semantic versioning pattern (e.g., 9.0.4, 10.0.1)
-                // Pattern: 1-4 digits, dot, 1-4 digits, dot, 1-4 digits, optionally followed by more version parts
+                // Pattern: major.minor.patch format, optionally followed by build number
+                // Requires at least 3 parts (major.minor.patch) as per semantic versioning
                 if (!string.IsNullOrWhiteSpace(versionString) &&
-                    Regex.IsMatch(versionString, @"^\d{1,4}\.\d{1,4}(\.\d{1,4})?(\.\d{1,4})?$"))
+                    Regex.IsMatch(versionString, @"^\d{1,4}\.\d{1,4}\.\d{1,4}(\.\d{1,4})?$"))
                 {
                     this._loggerWrapper.LogMessage($"✓ Detected Swashbuckle.AspNetCore version: {versionString}", MessageImportance.Normal);
                     return versionString;

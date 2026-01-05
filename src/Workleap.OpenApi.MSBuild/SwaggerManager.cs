@@ -26,7 +26,15 @@ internal sealed class SwaggerManager : ISwaggerManager
 
         // Detect Swashbuckle version from the application's assemblies
         var assemblyDirectory = Path.GetDirectoryName(openApiWebApiAssemblyPath);
-        this._swaggerVersion = this.DetectSwashbuckleVersion(assemblyDirectory) ?? DefaultSwaggerVersion;
+        if (string.IsNullOrEmpty(assemblyDirectory))
+        {
+            this._loggerWrapper.LogMessage("Could not determine assembly directory from path. Using default Swashbuckle CLI version.", MessageImportance.Low);
+            this._swaggerVersion = DefaultSwaggerVersion;
+        }
+        else
+        {
+            this._swaggerVersion = this.DetectSwashbuckleVersion(assemblyDirectory) ?? DefaultSwaggerVersion;
+        }
 
         this._swaggerDirectory = Path.Combine(openApiToolsDirectoryPath, "swagger", this._swaggerVersion);
         this._swaggerExecutablePath = Path.Combine(this._swaggerDirectory, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "swagger.exe" : "swagger");
@@ -159,10 +167,19 @@ internal sealed class SwaggerManager : ISwaggerManager
             {
                 // Product version might include metadata like "9.0.6+commit", extract just the version number
                 var versionParts = productVersion.Split('+', '-');
-                var version = versionParts[0];
+                var versionString = versionParts[0];
 
-                this._loggerWrapper.LogMessage($"✓ Detected Swashbuckle.AspNetCore version: {version}", MessageImportance.Normal);
-                return version;
+                // Validate that the extracted version is a valid version string
+                // We don't need to parse as System.Version because NuGet versions support more formats
+                // Just validate it's not empty and looks reasonable
+                if (!string.IsNullOrWhiteSpace(versionString) && versionString.Contains('.'))
+                {
+                    this._loggerWrapper.LogMessage($"✓ Detected Swashbuckle.AspNetCore version: {versionString}", MessageImportance.Normal);
+                    return versionString;
+                }
+
+                this._loggerWrapper.LogMessage($"Detected version '{versionString}' does not appear valid. Using default version.", MessageImportance.Low);
+                return null;
             }
 
             this._loggerWrapper.LogMessage("Could not detect Swashbuckle version from assembly metadata. Using default version.", MessageImportance.Low);

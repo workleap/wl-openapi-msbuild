@@ -55,6 +55,12 @@
       <!-- Use TreatWarningsAsErrors property unless it is opt-out with OpenApiTreatWarningsAsErrors, fallback to false if both are unset -->
       <OpenApiTreatWarningsAsErrors Condition="'$(OpenApiTreatWarningsAsErrors)' == ''">$(TreatWarningsAsErrors)</OpenApiTreatWarningsAsErrors>
       <OpenApiTreatWarningsAsErrors Condition="'$(OpenApiTreatWarningsAsErrors)' == ''">false</OpenApiTreatWarningsAsErrors>
+
+      <!-- The version of Swashbuckle.AspNetCore.Cli to use for generating OpenAPI specs -->
+      <!-- Fallback chain: explicit property -> PackageVersion (CPM) -> PackageReference -> default -->
+      <OpenApiSwaggerVersion Condition="'$(OpenApiSwaggerVersion)' == ''">@(PackageVersion->WithMetadataValue('Identity', 'Swashbuckle.AspNetCore')->Metadata('Version'))</OpenApiSwaggerVersion>
+      <OpenApiSwaggerVersion Condition="'$(OpenApiSwaggerVersion)' == ''">@(PackageReference->WithMetadataValue('Identity', 'Swashbuckle.AspNetCore')->Metadata('Version'))</OpenApiSwaggerVersion>
+      <OpenApiSwaggerVersion Condition="'$(OpenApiSwaggerVersion)' == ''">10.1.0</OpenApiSwaggerVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -83,6 +89,7 @@
       OpenApiSpecificationFiles="$(OpenApiSpecificationFiles)"
       OpenApiTreatWarningsAsErrors="$(OpenApiTreatWarningsAsErrors)"
       OpenApiServiceProfile="$(OpenApiServiceProfile)"
+      OpenApiSwaggerVersion="$(OpenApiSwaggerVersion)"
     />
     <Touch Files="$(IntermediateOutputPath)$(OpenApiTouchFileName)" AlwaysCreate="true" />
   </Target>

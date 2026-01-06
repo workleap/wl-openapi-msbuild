@@ -58,6 +58,10 @@ public sealed class ValidateOpenApiTask : CancelableAsyncTask
     /// <summary>If warnings should be logged as errors instead.</summary>
     public bool OpenApiTreatWarningsAsErrors { get; set; }
 
+    /// <summary>The version of Swashbuckle.AspNetCore.Cli to use for generating OpenAPI specs.</summary>
+    [Required]
+    public string OpenApiSwaggerVersion { get; set; } = string.Empty;
+
     protected override async Task<bool> ExecuteAsync(CancellationToken cancellationToken)
     {
         var loggerWrapper = new LoggerWrapper(this.Log, this.OpenApiTreatWarningsAsErrors);
@@ -73,6 +77,7 @@ public sealed class ValidateOpenApiTask : CancelableAsyncTask
         loggerWrapper.LogMessage("{0} = '{1}'", MessageImportance.Low, nameof(this.OpenApiSpectralRulesetUrl), this.OpenApiSpectralRulesetUrl ?? "No custom ruleset provided");
         loggerWrapper.LogMessage("{0} = '{1}'", MessageImportance.Low, nameof(this.OpenApiSwaggerDocumentNames), string.Join(", ", this.OpenApiSwaggerDocumentNames));
         loggerWrapper.LogMessage("{0} = '{1}'", MessageImportance.Low, nameof(this.OpenApiSpecificationFiles), string.Join(", ", this.OpenApiSpecificationFiles));
+        loggerWrapper.LogMessage("{0} = '{1}'", MessageImportance.Normal, nameof(this.OpenApiSwaggerVersion), this.OpenApiSwaggerVersion);
 
         if (this.OpenApiSpecificationFiles.Length != this.OpenApiSwaggerDocumentNames.Length)
         {
@@ -88,7 +93,7 @@ public sealed class ValidateOpenApiTask : CancelableAsyncTask
 
         var reportsPath = Path.Combine(this.OpenApiToolsDirectoryPath, "reports");
         var processWrapper = new ProcessWrapper(this.StartupAssemblyPath);
-        var swaggerManager = new SwaggerManager(loggerWrapper, processWrapper, this.OpenApiToolsDirectoryPath, this.OpenApiWebApiAssemblyPath);
+        var swaggerManager = new SwaggerManager(loggerWrapper, processWrapper, this.OpenApiToolsDirectoryPath, this.OpenApiWebApiAssemblyPath, this.OpenApiSwaggerVersion);
         var diffCalculator = new DiffCalculator(Path.Combine(this.OpenApiToolsDirectoryPath, "spectral-state"));
 
         var httpClientWrapper = new HttpClientWrapper();

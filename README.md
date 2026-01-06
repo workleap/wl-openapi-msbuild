@@ -19,6 +19,18 @@ For the TLDR version:
 - The default value are defined in the property group on the target `ValidateOpenApi` in this file `./src/Workleap.OpenApi.MSBuild/msbuild/tools/Workleap.OpenApi.MSBuild.targets`
 - Users can select whether to validate the API with frontend or backend ruleset depending on how they configure the `OpenApiServiceProfile` MSBuild property ([`backend` (default)](https://github.com/workleap/wl-api-guidelines/blob/main/.spectral.backend.yaml) or [`frontend`](https://github.com/workleap/wl-api-guidelines/blob/main/.spectral.frontend.yaml)).
 
+## Which Swashbuckle.AspNetCore.Cli version is used?
+The MSBuild task uses `Swashbuckle.AspNetCore.Cli` to generate OpenAPI specifications. The version is resolved in the following order (highest to lowest priority):
+
+1. **Explicit configuration** - Set via the `OpenApiSwaggerVersion` MSBuild property:
+```xml
+   <PropertyGroup>
+     <OpenApiSwaggerVersion>10.3.0</OpenApiSwaggerVersion>
+   </PropertyGroup>
+```
+2. Project dependency - If your project references Swashbuckle.AspNetCore (via *.csproj or Directory.Packages.props), the same version is used.
+3. Default version - Falls back to version 10.1.0 if no version is found.
+
 ## How to test locally
 
 ### How debug the project

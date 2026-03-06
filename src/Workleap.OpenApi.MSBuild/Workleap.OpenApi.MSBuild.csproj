@@ -22,7 +22,7 @@
       
       This is different from regular .NET libraries where NuGet automatically restores dependencies.
     -->
-    <PackageReference Include="CliWrap" Version="3.9.0" PrivateAssets="all" />
+    <PackageReference Include="CliWrap" Version="3.10.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.10.46" PrivateAssets="all" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" PrivateAssets="all" />
   </ItemGroup>
